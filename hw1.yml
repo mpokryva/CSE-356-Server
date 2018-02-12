@@ -1,0 +1,12 @@
+---
+- hosts: hw1
+  sudo: yes
+  tasks:
+    - name: install apache2
+      apt: name=apache2 update_cache=yes state=latest
+
+    - name: clone hw0 repo
+      git: repo=https://github.com/mpokryva/CSE-356-HW-0.git dest=/tmp/hw1 update=no
+
+    - name: move hw0 repo to server document root
+      shell: mv /tmp/hw1/* /var/www/html
