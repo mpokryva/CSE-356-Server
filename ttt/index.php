@@ -13,6 +13,6 @@
 
 <?php
 	if ($_POST["name"]) {
-		echo "Welcome ". $_POST["name"], date(DATE_RFC822);
+		echo "Hello ". $_POST["name"], ", ", date(DATE_RFC822);
 	}
 ?>
