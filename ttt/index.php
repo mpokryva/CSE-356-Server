@@ -1,9 +1,26 @@
 <html>
 <head>
-<link rel="stylesheet" type="text/css" href="style1.css">
+<link rel="stylesheet" type="text/css" href="game-style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>$(function(){ alert("jQuery is working!")})</script>
 <script>
 function loadBoard() {
-    
+    var grid = document.createElement("table");
+    var rows = 3;
+    var cols = 3;
+    for (var r = 0; r < rows; r++) {
+        var tr = grid.appendChild(document.createElement("tr"));
+        for (var c = 0; c < cols; c++) {
+            var cell = tr.appendChild(document.createElement("td"));
+            cell.addEventListener("click", function() {
+                // Make AJAX request.
+                var row = this.parentNode.rowIndex;
+                var col = this.cellIndex;
+
+            });
+        }
+    }
+    document.body.appendChild(grid);    
 }
 </script>
 </head>
@@ -13,7 +30,6 @@ function loadBoard() {
          Name: <input type = "text" name = "name" />
          <input type = "submit" />
       </form>
-
    </body>
 
 <?php
