@@ -1,25 +1,26 @@
 const express = require('express')
 const app = express()
-var bodyParser = require('body-parser');
-var N_ROWS = 3;
-var N_COLS = 3;
-var WIN_NUM = 3;
-app.use(bodyParser.json());
-var ip = require("ip");
-console.log(ip.address());
-app.post('/ttt/play', function(req, res) {
+    var bodyParser = require('body-parser');
+    var N_ROWS = 3;
+    var N_COLS = 3;
+    var WIN_NUM = 3;
+    app.use(bodyParser.json());
+    app.post('/', function(req, res) {
         // Parse grid.
+        console.log(req.body);
         var grid = req.body["grid"];
         console.log(grid);
         var winner = checkWinner(grid);
-        console.log("The winner is:" + winner + ".");
         var grid = makeMove(grid);
-        var response = {"grid": grid, "winner": winner};
-        res.send(response);
-});
+        if (winner == " ") {
+            winner = checkWinner(grid);
+        }
+        var data = {grid: grid, winner: winner};
+        res.json(data);
+    });
 
-app.listen(8080, ip.address(), () => console.log('Example app listening on port 8080!'));
-	
+app.listen(8080, () => console.log('Example app listening on port 8080!'));
+
 function makeMove(grid) {
     for (var i = 0; i < grid.length; i++) {
         if (grid[i] == " ") {
@@ -37,7 +38,7 @@ function checkWinner(grid) {
         winner = checkWinnerRC(grid, false);
         console.log("Checking cols...");
         if (winner == " ") {
-			console.log("Checking diagonals...");
+            console.log("Checking diagonals...");
             winner = checkWinnerDiag(grid);
             return winner;
         } else {
@@ -49,15 +50,15 @@ function checkWinner(grid) {
 }
 
 function checkWinnerRC(grid, checkRows) {
-	// Check for winner in rows.
+    // Check for winner in rows.
     var outerStop = (checkRows) ? N_ROWS : N_COLS;
     var innerStop = (checkRows) ? N_COLS : N_ROWS;
     for (var i = 0; i < outerStop; i++) {
         var winner = " ";
         var prev = null;
         for (var j = 0; j < innerStop; j++) {
-			var row = (checkRows) ? i : j;
-			var col = (checkRows) ? j : i;
+            var row = (checkRows) ? i : j;
+            var col = (checkRows) ? j : i;
             var index = getIndex(row, col, N_ROWS, N_COLS);
             if (grid[index] != " " && (prev == null || grid[index] == prev)) {
                 // Keep searching this row;
@@ -72,7 +73,7 @@ function checkWinnerRC(grid, checkRows) {
         }
     }
     return " ";
-    
+
 }
 
 function checkWinnerDiag(grid) {
@@ -92,7 +93,7 @@ function checkWinnerDiag(grid) {
 
 
 function getRow(index, nCols) {
-	return index / nCols;
+    return Math.floor(index / nCols);
 }
 
 function getIndex(row, col, nCols, nRows) {
@@ -100,6 +101,6 @@ function getIndex(row, col, nCols, nRows) {
 }
 
 function getCol(index, nCols) {
-	return index % nCols;
+    return index % nCols;
 }
 

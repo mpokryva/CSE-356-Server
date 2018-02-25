@@ -1,10 +1,17 @@
 table {
     border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 50px;
 }
 table td {
-    border: 1px solid black;
-    width: 200px;
-    height:200px;
+    border: 2px solid black;
+    width: 120px;
+    height: 120px;
+    text-align: center;
+    font-size: 3em;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
 }
 table tr:first-child td {
     border-top: 0;
@@ -21,5 +28,16 @@ table tr td:last-child {
 
 body {
     padding: 50px;
-    background-color: linen;
+    background-color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+h1 {  
+    font-family: Arial, Helvetica, sans-serif;
+    color: teal;
+}
+
+form { 
+    font-family: Arial, Helvetica, sans-serif;
 }
