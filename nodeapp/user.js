@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const mongo = require("mongodb").MongoClient;
     app.use(bodyParser.json());
-    app.post('/', function(req, res) {
+    app.post('/adduser', function(req, res) {
         var body = req.body;
         console.log(body);
         var recepient = "dpokryvailo@cs.stonybrook.edu"

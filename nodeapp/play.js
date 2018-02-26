@@ -5,7 +5,7 @@ const app = express()
     var N_COLS = 3;
     var WIN_NUM = 3;
     app.use(bodyParser.json());
-    app.post('/', function(req, res) {
+    app.post('/ttt/play', function(req, res) {
         // Parse grid.
         console.log(req.body);
         var grid = req.body["grid"];
