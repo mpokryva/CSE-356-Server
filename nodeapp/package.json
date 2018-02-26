@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.2",
+    "mongodb": "^3.0.3",
     "nodemailer": "^4.6.0"
   }
 }
