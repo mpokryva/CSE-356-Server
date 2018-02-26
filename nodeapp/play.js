@@ -19,7 +19,7 @@ const app = express()
         res.json(data);
     });
 
-app.listen(8080, () => console.log('Example app listening on port 8080!'));
+app.listen(8000, () => console.log('Example app listening on port 8000!'));
 
 function makeMove(grid) {
     for (var i = 0; i < grid.length; i++) {

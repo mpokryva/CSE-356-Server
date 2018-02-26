@@ -1,52 +1,83 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
 const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const mongo = require("mongodb").MongoClient;
     app.use(bodyParser.json());
-    app.post('/adduser', function(req, res) {
+    app.post("/adduser", function(req, res) {
         var body = req.body;
         console.log(body);
-        var recepient = "dpokryvailo@cs.stonybrook.edu"
-        addUser(body.username, body.password, body.email, (error, info) => {
-            if (error) {
-               res.sendStatus(500);
-            } else {
-               res.sendStatus(200); 
-            }
+        addUser(body.username, body.password, body.email, (err, info) => {
+            sendStatus(res, err);
         });
     });
+    app.post("/verify", function(req, res) {
+        var body = req.body;
+        verify(body.email, body.key, (err, info) => {
+            sendStatus(res, err);       
+        });
+    });
+app.listen(8001, () => console.log('Example app listening on port 8001!'));
 
-app.listen(8000, () => console.log('Example app listening on port 8000!'));
+function sendStatus(client, err) {
+    if (err) {
+        var code = (err.statusCode) ? err.statusCode : 500;
+        client.sendStatus(code)
+    } else {
+       client.sendStatus(200); 
+    }
+}
 
-
+function verify(email, key, callback) {
+    mongo.connect("mongodb://localhost:27017/", function(err, client) {
+        if (err) callback(err, client);
+        const dbName = "wu2";
+        const db = client.db(dbName);
+        const colName = "users";
+        var query = {
+            $and: [{email: email}, {key: key}]
+        };
+        var updateQuery = {$set: {verified: true}};
+        db.collection(colName).update(query, updateQuery, (err, res) => {
+            console.log(res.result);
+            if (err) {
+                return callback(err, res);
+            } else if (res.result.nModified == 0) {
+                return callback({statusCode: 404}, res);
+            } else {
+                return callback(err, res);
+            }
+        }); 
+    });
+    
+}
 
 function addUser(username, password, email, callback) {
     // Store user
+    const keyLen = 20;
+    const key = generateKey(keyLen);
     var user = {
         _id: username,
         password: password,
         email: email,
+        key: key,
         verified: false
     }
-    mongoInsert(user, (error, result) => {
-        if (!error) { // If stored successfully, send email.
-            sendKey(email, (error, result) => {
-                callback(error, result);
+    insertUser(user, (err, res) => {
+        if (!err) { // If stored successfully, send email.
+            sendKey(key, email, (err, res) => {
+                callback(err, res);
             });
         } else {
-            callback(error, result);
+            callback(err, res);
         }
     });
 }
 
-function sendKey(email, callback) {
-    const keyLen = 20;
-    const key = generateKey(keyLen);
+function sendKey(key, email, callback) {
     const  msgText = "Your key is: " + key;
-    sendEmail(email, msgText, (error, info) => {
-        callback(error, info);
-
+    sendEmail(email, msgText, (err, info) => {
+        callback(err, info);
     }); 
 }
 
@@ -57,18 +88,25 @@ function generateKey(length) {
     return [...Array(length)].map(() => Math.random().toString(radix)[indexToPick]).join("");
 }
 
-function mongoInsert(data, callback) {
-    mongo.connect("mongodb://localhost:27017/", function(error, client) {
-        if (error) callback(error, result);
+function insertUser(userData, callback) {
+    mongo.connect("mongodb://localhost:27017/", function(err, client) {
+        if (err) callback(err, client);
         const dbName = "wu2";
         const db = client.db(dbName);
-        db.collection("users").insertOne(data, function(error, result) {
-            if (!error) { 
-                console.log("Doc inserted!");
-                client.close();
-            }
-            callback(error, result);
+        const colName = "users";
+        db.collection(colName).findOne({email: userData.email}, function (err, res) {
+            if (err) return callback({statusCode: 500}, null);
+            if (res) return callback({statusCode: 409}, null);
+            db.collection(colName).insertOne(userData, function(err, res) {
+                if (!err) { 
+                    console.log("Doc inserted!");
+                    client.close();
+                }
+                console.log(err);
+                callback(err, res);
+            });    
         });
+
     });
 }
 
@@ -89,12 +127,12 @@ function sendEmail(recepient, msgText, callback) {
         to: recepient,
         text: msgText
     };
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log(error);
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            console.log(err);
         } else {
             console.log('Message sent: %s', info.messageId);
         }
-        callback(error, info);
+        callback(err, info);
     });
 }
