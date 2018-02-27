@@ -6,14 +6,14 @@ const mongo = require("mongodb").MongoClient;
 const cookieParser = require("cookie-parser");
 app.use(bodyParser.json());
 app.use(cookieParser())
+const cookieKey = "username";
+const ttl = 60 * 15 * 1000; // 15 mins.
+const options = {maxAge: ttl};
 app.post("/login", (req, res) => {
     var body = req.body;
     // If cookies aren't set, log in.
-    const cookieKey = "username";
     const reqCookie = req.cookies[cookieKey];
     console.log("ReqCookie: " + reqCookie);
-    const ttl = 60 * 15 * 1000; // 15 mins.
-    const options = {maxAge: ttl};
     if (!reqCookie) {
         login(body.username, body.password, (err, username) => {
             if (username) {
@@ -23,10 +23,15 @@ app.post("/login", (req, res) => {
         });
     } else {
         //res.clearCookie(cookieKey, options);
-        console.log("Here");
         sendStatus(null, res); // Cookie set. Login successful by default.
     }
-}); 
+});
+
+app.post("/logout", (req, res) => {
+    res.clearCookie(cookieKey, options); 
+    sendStatus(null, res);
+});
+
 app.listen(8002, () => console.log('Example app listening on port 8002!'));
 
 function sendStatus(err, client) {
