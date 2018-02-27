@@ -8,23 +8,23 @@ const mongo = require("mongodb").MongoClient;
         var body = req.body;
         console.log(body);
         addUser(body.username, body.password, body.email, (err, info) => {
-            sendStatus(res, err);
+            sendStatus(err, res);
         });
     });
     app.post("/verify", function(req, res) {
         var body = req.body;
         verify(body.email, body.key, (err, info) => {
-            sendStatus(res, err);       
+            sendStatus(err, res);       
         });
     });
 app.listen(8001, () => console.log('Example app listening on port 8001!'));
 
-function sendStatus(client, err) {
+function sendStatus(err, client) {
     if (err) {
         var code = (err.statusCode) ? err.statusCode : 500;
-        client.sendStatus(code)
+        client.status(code).send({status: "ERROR"});
     } else {
-       client.sendStatus(200); 
+       client.status(200).send({status: "OK"}); 
     }
 }
 
