@@ -17,7 +17,12 @@ module.exports = {
             var code = (err.statusCode) ? err.statusCode : 500;
             client.status(code).send({status: "ERROR"});
         } else {
-           client.status(200).json({status: "OK", data}); 
+           if (data) {
+               data.status = "OK";
+           } else {
+               data = {status: "OK"};
+           }
+           client.status(200).json(data); 
         }
     },
     /*
