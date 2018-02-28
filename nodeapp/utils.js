@@ -34,7 +34,6 @@ module.exports = {
     },
     
     getUsername : function(req) {
-        console.log("req:" + req.cookies);
         return req.cookies[cookieKey];
     }
 }
