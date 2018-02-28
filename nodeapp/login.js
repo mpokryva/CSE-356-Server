@@ -8,11 +8,12 @@ app.use(bodyParser.json());
 app.use(cookieParser())
 const cookieKey = "username";
 const ttl = 60 * 15 * 1000; // 15 mins.
-const options = {maxAge: ttl};
+const options = {maxAge: ttl, secure: false};
 app.post("/login", (req, res) => {
     var body = req.body;
     // If cookies aren't set, log in.
     const reqCookie = req.cookies[cookieKey];
+    console.log(req.cookies);
     console.log("ReqCookie: " + reqCookie);
     if (!reqCookie) {
         login(body.username, body.password, (err, username) => {

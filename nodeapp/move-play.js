@@ -3,26 +3,33 @@ const app = express();
 const mongo = require("mongodb").MongoClient;
 const utils = require("./utils.js");
 const bodyParser = require('body-parser');
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+app.use(bodyParser.json());
 var N_ROWS = 3;
 var N_COLS = 3;
 var WIN_NUM = 3;
-app.use(bodyParser.json());
 app.post('/ttt/play', function(req, res) {
     const username = utils.getUsername(req);
-    console.log(username);
-    if (!username) utils.sendStatus({statusCode: 403}, null); // User not logged in.
+    if (!username) return utils.sendStatus({statusCode: 403}, res); // User not logged in.
     // Get grid from mongodb.
-    getGrid(username, (err, res) => {
-        var grid = res;
+    getGrid(username, (err, grid) => {
+        if (!grid) { // New game.
+            grid = [];
+            for (var i = 0; i < N_ROWS * N_COLS; i++) {
+               grid[i] = " ";
+            } 
+        }
         console.log("Grid: " + grid);
         const move = req.body.move;
         if (move) {
             // Make client move.
             grid[move] = "X";
-            console.log(grid);
+            console.log("PostClient: " + grid);
             var winner = checkWinner(grid);
             if (winner == " ") {    
                 var grid = makeMove(grid);
+                console.log("PostServer: " + grid);
                 winner = checkWinner(grid);
             }
         }
@@ -48,8 +55,14 @@ function getGrid(username, callback) {
     const query = {username: username};
     const projection = {currentGame: 1};
     utils.mongoFindInUsers(query, projection, (err, res) => {
-      if (err) return callback(err, res);
-      callback(err, res.currentGame);
+        var errCode = (err) ? 500 : 200;
+        if (errCode != 500) {
+            errCode = (res) ? null : 403;
+        }
+        err = (errCode) ? {statusCode: errCode} : null;
+        console.log(res);
+        if (err) return callback(err, res);
+        callback(err, res.currentGame);
     });
 }
 
