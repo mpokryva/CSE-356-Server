@@ -13,12 +13,16 @@ app.post('/ttt/play', function(req, res) {
     const username = utils.getUsername(req);
     if (!username) return utils.sendStatus({statusCode: 403}, res); // User not logged in.
     // Get grid from mongodb.
-    getGrid(username, (err, grid) => {
-        if (!grid) { // New game.
-            grid = [];
+    getGame(username, (err, game) => {
+        if (err && err.statusCode == 500) utils.sendStatus(err, res);
+        if (!game) { // New game.
+            var grid = [];
+            var game = {};
             for (var i = 0; i < N_ROWS * N_COLS; i++) {
                grid[i] = " ";
             } 
+        } else {
+            var grid = game.grid;
         }
         console.log("Grid: " + grid);
         const move = req.body.move;
@@ -28,13 +32,17 @@ app.post('/ttt/play', function(req, res) {
             console.log("PostClient: " + grid);
             var winner = checkWinner(grid);
             if (winner == " ") {    
-                var grid = makeMove(grid);
+                grid = makeMove(grid);
                 console.log("PostServer: " + grid);
                 winner = checkWinner(grid);
             }
         }
-        var data = {grid: grid, winner: winner};
-        res.json(data); 
+        game.grid = grid;
+        game.winner = winner;
+        storeGame(username, game, (err, info) => {
+            var data = {grid: grid, winner: winner};
+            utils.sendStatus(err, res, data);
+        });
     });
 
 });
@@ -51,18 +59,33 @@ function makeMove(grid) {
     return grid;
 }
 
-function getGrid(username, callback) {
-    const query = {username: username};
-    const projection = {currentGame: 1};
-    utils.mongoFindInUsers(query, projection, (err, res) => {
-        var errCode = (err) ? 500 : 200;
-        if (errCode != 500) {
-            errCode = (res) ? null : 403;
-        }
-        err = (errCode) ? {statusCode: errCode} : null;
-        console.log(res);
+function storeGame(username, game, callback) {
+    const query = {_id: username};
+    var update;
+    if (game.winner == " ") {
+        // Ongoing game.
+        game.start_date = Date.now();
+        update = {$set: {currentGame: game}};
+    } else {
+        // Game just finished.
+        update = {$unset: {currentGame: 1}, $push: {pastGames: {game}}};
+    }
+    utils.mongoUpdateUsers(query, update, (err, res) => {
         if (err) return callback(err, res);
-        callback(err, res.currentGame);
+        if (res.result.n == 1 && res.result.nModified == 1) {
+            return callback(null, res);
+        } else {
+            return callback({statusCode: 500}, res);
+        }
+    });
+}
+
+function getGame(username, callback) {
+    const query = {_id: username};
+    const projection = {currentGame: 1};
+    utils.mongoFindInUsers(query, projection, 400, (err, res) => {
+        const ret = (err) ? null : res.currentGame;
+        callback(err, ret);
     });
 }
 
