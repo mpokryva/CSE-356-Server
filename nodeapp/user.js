@@ -3,30 +3,22 @@ const app = express();
 const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const mongo = require("mongodb").MongoClient;
-    app.use(bodyParser.json());
-    app.post("/adduser", function(req, res) {
-        var body = req.body;
-        console.log(body);
-        addUser(body.username, body.password, body.email, (err, info) => {
-            sendStatus(err, res);
-        });
+const utils = require("./utils.js");
+app.use(bodyParser.json());
+app.post("/adduser", function(req, res) {
+    var body = req.body;
+    console.log(body);
+    addUser(body.username, body.password, body.email, (err, info) => {
+        utils.sendStatus(err, res);
     });
-    app.post("/verify", function(req, res) {
-        var body = req.body;
-        verify(body.email, body.key, (err, info) => {
-            sendStatus(err, res);       
-        });
+});
+app.post("/verify", function(req, res) {
+    var body = req.body;
+    verify(body.email, body.key, (err, info) => {
+        utils.sendStatus(err, res);       
     });
+});
 app.listen(8001, () => console.log('Example app listening on port 8001!'));
-
-function sendStatus(err, client) {
-    if (err) {
-        var code = (err.statusCode) ? err.statusCode : 500;
-        client.status(code).send({status: "ERROR"});
-    } else {
-       client.status(200).send({status: "OK"}); 
-    }
-}
 
 function verify(email, key, callback) {
     mongo.connect("mongodb://localhost:27017/", function(err, client) {
@@ -49,7 +41,7 @@ function verify(email, key, callback) {
             }
         }); 
     });
-    
+
 }
 
 function addUser(username, password, email, callback) {
@@ -121,7 +113,7 @@ function sendEmail(recepient, msgText, callback) {
             rejectUnauthorized: false
         }
     });
-    
+
     let mailOptions = {
         from: "<ubuntu@ubuntu16-micro.cloud.compas.cs.stonybrook.edu>",
         to: recepient,

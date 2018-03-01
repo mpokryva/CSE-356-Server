@@ -12,6 +12,7 @@ const ttl = 60 * 15 * 1000; // 15 mins.
 const options = {maxAge: ttl, secure: false};
 app.post("/login", (req, res) => {
     var body = req.body;
+    console.log("req: " + JSON.stringify(body));
     // If cookies aren't set, log in.
     const reqCookie = req.cookies[cookieKey];
     console.log(req.cookies);

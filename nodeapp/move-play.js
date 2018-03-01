@@ -24,16 +24,16 @@ app.post('/ttt/play', function(req, res) {
         } else {
             var grid = game.grid;
         }
-        console.log("Grid: " + grid);
+        //console.log("Grid: " + grid);
         const move = req.body.move;
         if (move) {
             // Make client move.
             grid[move] = "X";
-            console.log("PostClient: " + grid);
+            //console.log("PostClient: " + grid);
             var winner = checkWinner(grid);
             if (winner == " ") {    
                 grid = makeMove(grid);
-                console.log("PostServer: " + grid);
+                //console.log("PostServer: " + grid);
                 winner = checkWinner(grid);
             }
         }
@@ -110,7 +110,7 @@ function getGame(username, callback) {
     const query = {_id: username};
     const projection = {currentGame: 1};
     utils.mongoFindInUsers(query, projection, 400, (err, res) => {
-        console.log(res);
+        //console.log(res);
         const ret = (err) ? null : res.currentGame;
         callback(err, ret);
     });
@@ -118,12 +118,12 @@ function getGame(username, callback) {
 
 function checkWinner(grid) {
     var winner = checkWinnerRC(grid, true);
-    console.log("Checking rows...");
+    //console.log("Checking rows...");
     if (winner == " ") {
         winner = checkWinnerRC(grid, false);
-        console.log("Checking cols...");
+        //console.log("Checking cols...");
         if (winner == " ") {
-            console.log("Checking diagonals...");
+            //console.log("Checking diagonals...");
             winner = checkWinnerDiag(grid);
             if (winner == " ") {
                 // Check for a draw.

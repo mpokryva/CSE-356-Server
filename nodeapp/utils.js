@@ -16,7 +16,8 @@ module.exports = {
         if (err) {
             var code = (err.statusCode) ? err.statusCode : 500;
             console.log("In utils.sendStatus, with code " + code);
-            client.status(code).json({status: "ERROR"});
+            //client.status(code).json({status: "ERROR"});
+            client.json({status: "ERROR"});
         } else {
            if (data) {
                data.status = "OK";
