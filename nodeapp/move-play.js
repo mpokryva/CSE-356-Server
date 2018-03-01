@@ -19,7 +19,7 @@ app.post('/ttt/play', function(req, res) {
             var grid = [];
             var game = {};
             for (var i = 0; i < N_ROWS * N_COLS; i++) {
-               grid[i] = " ";
+                grid[i] = " ";
             } 
         } else {
             var grid = game.grid;
@@ -71,7 +71,16 @@ function storeGame(username, game, callback) {
         update = {$set: {currentGame: game}};
     } else {
         // Game just finished.
-        update = {$unset: {currentGame: 1}, $push: {pastGames: {game}}};
+        // Determine whose score counter to increment.
+        var scoreInc = {};
+        if (game.winner == "d") {
+            scoreInc = {tie: 1}
+            game.winner = " "; // Change to appropriate format.
+        } else {
+            scoreInc = (game.winner == "X") ? {human: 1} : {wopr: 1};
+        }
+        update = {$unset: {currentGame: 1}, $push: {pastGames: game}};
+        update.$inc = scoreInc;
     }
     utils.mongoUpdateUsers(query, update, (err, res) => {
         if (err) return callback(err, res);
@@ -82,7 +91,6 @@ function storeGame(username, game, callback) {
         }
     });
 }
-
 
 function generateKey(length) {
     "use strict";
@@ -110,6 +118,17 @@ function checkWinner(grid) {
         if (winner == " ") {
             console.log("Checking diagonals...");
             winner = checkWinnerDiag(grid);
+            if (winner == " ") {
+                // Check for a draw.
+                var full = true;
+                for (var i = 0; i < grid.length; i++) {
+                    if (grid[i] == " ") {
+                        full = false;
+                        break;
+                    }
+                }
+                winner = (full) ? "d" : " ";
+            }
             return winner;
         } else {
             return winner;

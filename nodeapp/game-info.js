@@ -24,6 +24,16 @@ app.post("/getgame", (req, res) => {
         utils.sendStatus(err, res, game);
     }); 
 });
+
+app.post("/getscore", (req, res) => {
+    const username = utils.getUsername(req);
+    if (!username) return utils.sendStatus({statusCode: 403}, res); // User not logged in.
+    const gameId = req.body.id;
+    getGame(username, gameId, (err, game) => {
+        utils.sendStatus(err, res, game);
+    }); 
+});
+
 app.listen(8003, () => console.log('Example app listening on port 8003!'));
 
 function getPastGames(username, callback) {
@@ -43,7 +53,7 @@ function getPastGames(username, callback) {
             // Extract pastGames (bc projection isn't working).
             var pastGames = (res.pastGames) ? res.pastGames : [];
             for (var i = 0 ; i < pastGames.length; i++) {
-                pastGames[i] = pastGames[i].game;
+                //pastGames[i] = pastGames[i].game;
                 delete pastGames[i].grid;
                 delete pastGames[i].winner;
             }
@@ -65,7 +75,7 @@ function getGame(username, id, callback) {
             var game = null;
             if (pastGames) {
                 for (var i = 0; i < pastGames.length; i++) {
-                    pastGames[i] = pastGames[i].game; // Hacking around "game" key error.
+                    //pastGames[i] = pastGames[i].game; // Hacking around "game" key error.
                     if (pastGames[i].id == id) { // Game found.
                         game = pastGames[i];
                         delete game.id;
@@ -79,6 +89,14 @@ function getGame(username, id, callback) {
         } else {
             return callback(err, res);
         }
+    });
+}
+
+function getScore(username, callback) {
+    const query = {_id: username};
+    const projection = {score: 1}
+    utils.mongoFindInUsers(query, projection, (err, res) => {
+
     });
 }
 
