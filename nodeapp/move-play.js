@@ -63,8 +63,11 @@ function storeGame(username, game, callback) {
     const query = {_id: username};
     var update;
     if (game.winner == " ") {
-        // Ongoing game.
-        game.start_date = Date.now();
+        if (!game.id) { // Just started game.
+            const idLen = 10;
+            game.id = generateKey(idLen);
+            game.start_date = Date.now();
+        }
         update = {$set: {currentGame: game}};
     } else {
         // Game just finished.
@@ -80,10 +83,19 @@ function storeGame(username, game, callback) {
     });
 }
 
+
+function generateKey(length) {
+    "use strict";
+    let radix = 36;
+    let indexToPick = 2; // Must be > 1.
+    return [...Array(length)].map(() => Math.random().toString(radix)[indexToPick]).join("");
+}
+
 function getGame(username, callback) {
     const query = {_id: username};
     const projection = {currentGame: 1};
     utils.mongoFindInUsers(query, projection, 400, (err, res) => {
+        console.log(res);
         const ret = (err) ? null : res.currentGame;
         callback(err, ret);
     });
