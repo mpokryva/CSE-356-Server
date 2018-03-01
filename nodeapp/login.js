@@ -18,8 +18,9 @@ app.post("/login", (req, res) => {
     console.log(req.cookies);
     console.log("ReqCookie: " + reqCookie);
     if (reqCookie != body.username) {
-        login(body.username, body.password, (err, username) => {
-            if (username) {
+        login(body.username, body.password, (err, profile) => {
+            if (profile) {
+                const username = profile._id;
                 console.log("Log in successful. Settings cookies");
                 res.cookie(cookieKey, username, options); 
             } else {

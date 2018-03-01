@@ -10,7 +10,9 @@ var N_ROWS = 3;
 var N_COLS = 3;
 var WIN_NUM = 3;
 app.post('/ttt/play', function(req, res) {
+    console.log("req: " + JSON.stringify(req.body));
     const username = utils.getUsername(req);
+    console.log("Cookie username" + JSON.stringify(username));
     if (!username) return utils.sendStatus({statusCode: 403}, res); // User not logged in.
     // Get grid from mongodb.
     getGame(username, (err, game) => {
@@ -29,11 +31,11 @@ app.post('/ttt/play', function(req, res) {
         if (move) {
             // Make client move.
             grid[move] = "X";
-            //console.log("PostClient: " + grid);
+            console.log("PostClient: " + grid);
             var winner = checkWinner(grid);
             if (winner == " ") {    
                 grid = makeMove(grid);
-                //console.log("PostServer: " + grid);
+                console.log("PostServer: " + grid);
                 winner = checkWinner(grid);
             }
         }
@@ -62,6 +64,7 @@ function makeMove(grid) {
 
 function storeGame(username, game, callback) {
     const query = {_id: username};
+    console.log("storeGame query: " + JSON.stringify(query));
     var update;
     if (game.winner == " ") {
         if (!game.id) { // Just started game.
@@ -89,7 +92,11 @@ function storeGame(username, game, callback) {
         update = {$unset: {currentGame: 1}, $push: {pastGames: game}};
         update.$inc = scoreInc;
     }
+    console.log("update: " + JSON.stringify(update));
     utils.mongoUpdateUsers(query, update, (err, res) => {
+        console.log("Updated?");
+        console.log("Error: " + JSON.stringify(err));
+        console.log("Res: " + JSON.stringify(res));
         if (err) return callback(err, res);
         if (res.result.n == 1 && res.result.nModified == 1) {
             return callback(null, res);
