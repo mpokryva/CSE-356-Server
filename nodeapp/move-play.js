@@ -39,6 +39,7 @@ app.post('/ttt/play', function(req, res) {
         }
         game.grid = grid;
         game.winner = winner;
+        winner = (winner == "d") ? " " : winner;
         storeGame(username, game, (err, info) => {
             var data = {grid: grid, winner: winner};
             utils.sendStatus(err, res, data);
@@ -73,12 +74,18 @@ function storeGame(username, game, callback) {
         // Game just finished.
         // Determine whose score counter to increment.
         var scoreInc = {};
+        var human = 0;
+        var wopr = 0;
+        var tie = 0;
         if (game.winner == "d") {
-            scoreInc = {tie: 1}
+            tie++;
             game.winner = " "; // Change to appropriate format.
-        } else {
-            scoreInc = (game.winner == "X") ? {human: 1} : {wopr: 1};
+        } else if (game.winner == "X") {
+            human++;
+        }  else {
+            wopr++;
         }
+        scoreInc = {"score.human": human, "score.wopr": wopr, "score.tie": tie};
         update = {$unset: {currentGame: 1}, $push: {pastGames: game}};
         update.$inc = scoreInc;
     }
@@ -156,7 +163,7 @@ function checkWinnerRC(grid, checkRows) {
                 break;
             }
             if (j + 1 == WIN_NUM) { // Found a winner!
-                console.log("Found a winner!");
+                console.log("Found a winner: " + grid[index]);
                 return grid[index];
             }
         }

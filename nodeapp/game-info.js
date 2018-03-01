@@ -29,8 +29,8 @@ app.post("/getscore", (req, res) => {
     const username = utils.getUsername(req);
     if (!username) return utils.sendStatus({statusCode: 403}, res); // User not logged in.
     const gameId = req.body.id;
-    getGame(username, gameId, (err, game) => {
-        utils.sendStatus(err, res, game);
+    getScore(username, (err, game) => {
+       utils.sendStatus(err, res, game);
     }); 
 });
 
@@ -42,11 +42,11 @@ function getPastGames(username, callback) {
     const errCode = 404;
     utils.mongoFindInUsers(query, projection, errCode, (err, res) => {
         if (err) {
-           if (err.statusCode  == 404) {
+            if (err.statusCode  == 404) {
                 return callback(null, []);
-           } else {
-               return callback(err, res);
-           }
+            } else {
+                return callback(err, res);
+            }
         } else {
             // Found stuff.
             console.log(res);
@@ -94,9 +94,14 @@ function getGame(username, id, callback) {
 
 function getScore(username, callback) {
     const query = {_id: username};
-    const projection = {score: 1}
-    utils.mongoFindInUsers(query, projection, (err, res) => {
-
+    const projection = {score: 1};
+    const errCode = 500;
+    utils.mongoFindInUsers(query, projection, errCode, (err, res) => {
+        if (res) {
+            return callback(err, res.score);
+        } else {
+            return callback(err, res);
+        }
     });
 }
 
