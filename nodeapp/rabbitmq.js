@@ -2,37 +2,53 @@ const express = require('express');
 const app = express();
 const bodyParser = require("body-parser");
 const amqp = require("amqplib/callback_api");
+app.use(bodyParser.json());
 // listen - consumer.
-// speak - producer.
-
-app.post("/listen", (err, res) => {
+// speak - producer. 
+const exName = "hw3";
+app.post("/listen", (req, res) => {
     amqp.connect("amqp://localhost", (err, conn) => {
-        conn.createChannel((err, conn) => {
-            var q = "hw3";
-            ch.assertQueue(q, {durable: false, exclusive: true});
-            ch.sendToQueue(q, new Buffer("Hello World!"));
-            console.log("[x] Sent Hello World!");
-        });
-        setTimeout(function() {
-            conn.close();
-            process.exit(0);
-        }, 500);
-    });
-});
-
-app.post("/speak", (err, res) => {
-    amqp.connect("amqp://localhost", (err, conn) => {
+        //console.log("POST to listen.");
         conn.createChannel((err, ch) => {
-            var q = "hello";
-            ch.assertQueue(q, {durable: false, exclusive: true});
-
-            console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q);
-            ch.consume(q, (msg) => {
-                console.log("[x] Received %s", msg.content.toString());
-            }, {noAck: true});
+            // Create exchange.
+            ch.assertExchange(exName, "direct");
+            // Create queue.
+            ch.assertQueue("", {exclusive: true}, (err, q) => {
+                const keys = req.body.keys;
+                console.log(keys);
+                keys.forEach((key) => {
+                    console.log("Binding to: " + key);
+                    ch.bindQueue(q.queue, exName, key);
+                });
+                ch.consume(q.queue, (msg) => { // Listen for message and return it.
+                    console.log("Received message: " + msg);
+                    const ret = {msg: msg.content.toString()};
+                    console.log("Closing connection.");
+                    conn.close();
+                    res.send(ret);
+                }); 
+            });
         });
     });
 });
 
+app.post("/speak", (req, res) => {
+    amqp.connect("amqp://localhost", (err, conn) => {
+        //console.log("POST to speak.");
+        conn.createChannel((err, ch) => {
+            // Create exchange if not already created.
+            //ch.deleteExchange(exName);
+            ch.assertExchange(exName, "direct");
+            const body = req.body;
+            const key = body.key;
+            const msg = body.msg;
+            console.log("Key : %s, Message: %s", key, msg);
+            ch.publish(exName, key, new Buffer(msg)); // Publish message with key.
+            res.send(); // Send 200 if reached this point.
+        });
+        //setTimeout(function() { conn.close(); process.exit(0) }, 500);
+    });
+});
 
+app.listen(8004, () => console.log("App listening on port 8004!")); 
 
