@@ -7,13 +7,14 @@ const utils = require("./utils.js");
 app.use(bodyParser.json());
 app.post("/adduser", function(req, res) {
     var body = req.body;
-    console.log(body);
+    console.log(JSON.stringify(body));
     addUser(body.username, body.password, body.email, (err, info) => {
         utils.sendStatus(err, res);
     });
 });
 app.post("/verify", function(req, res) {
     var body = req.body;
+    console.log("req: " + JSON.stringify(body));
     verify(body.email, body.key, (err, info) => {
         utils.sendStatus(err, res);       
     });

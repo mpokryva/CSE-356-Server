@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "amqplib": "^0.5.2",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
     "mongodb": "^3.0.3",
